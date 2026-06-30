@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>ABM Parques — Parques Nacionales</title>
+<style>
+  :root {
+    --verde: #1f7a4d;
+    --verde-oscuro: #14532d;
+    --fondo: #f7f8f6;
+    --borde: #d9ddd6;
+    --texto: #1f2a23;
+    --rojo: #b3261e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: var(--fondo);
+    color: var(--texto);
+    margin: 0;
+    padding: 32px;
+  }
+  header {
+    margin-bottom: 24px;
+  }
+  header h1 {
+    font-size: 22px;
+    margin: 0 0 4px 0;
+    color: var(--verde-oscuro);
+  }
+  header p {
+    margin: 0;
+    color: #5b675f;
+    font-size: 13px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  .card {
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .card h2 {
+    font-size: 15px;
+    margin: 0 0 12px 0;
+    color: var(--verde-oscuro);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--borde);
+  }
+  th {
+    color: #5b675f;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  tr.inactivo td {
+    opacity: 0.45;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.activo { background: #e3f4ea; color: var(--verde-oscuro); }
+  .badge.inactivo { background: #f1ecec; color: #7a7a7a; }
+  form.inline { display: inline; }
+  label {
+    display: block;
+    font-size: 12px;
+    color: #5b675f;
+    margin: 12px 0 4px 0;
+  }
+  input, select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--borde);
+    border-radius: 5px;
+    font-size: 13px;
+    font-family: inherit;
+  }
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  button.primary {
+    background: var(--verde);
+    color: white;
+    width: 100%;
+    margin-top: 16px;
+    padding: 10px;
+  }
+  button.small {
+    background: transparent;
+    color: var(--rojo);
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid var(--rojo);
+  }
+  button.small:hover { background: #fdeceb; }
+  .edit-link {
+    color: var(--verde);
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    border: none;
+    background: none;
+    padding: 0;
+  }
+  .flash {
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .flash.success { background: #e3f4ea; color: var(--verde-oscuro); }
+  .flash.danger { background: #fbe9e7; color: var(--rojo); }
+  .actions { display: flex; gap: 6px; align-items: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Gestión de Parques Nacionales</h1>
+  <p>ABM directo sobre stored procedures · GestionParques.Parque</p>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="layout">
+
+  <div class="card">
+    <h2>Parques registrados</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Ubicación</th>
+          <th>Superficie</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in parques %}
+        <tr class="{{ 'inactivo' if not p.activo }}">
+          <td>{{ p.id_parque }}</td>
+          <td>{{ p.nombre }}</td>
+          <td>{{ p.ubicacion }}</td>
+          <td>{{ p.superficie }}</td>
+          <td>{{ p.tipo_parque }}</td>
+          <td>
+            <span class="badge {{ 'activo' if p.activo else 'inactivo' }}">
+              {{ 'Activo' if p.activo else 'Inactivo' }}
+            </span>
+          </td>
+          <td class="actions">
+            <button class="edit-link" onclick="cargarEdicion({{ p.id_parque }}, '{{ p.nombre }}', '{{ p.ubicacion }}', {{ p.superficie }})">Editar</button>
+            {% if p.activo %}
+            <form class="inline" method="POST" action="/parque/baja/{{ p.id_parque }}" onsubmit="return confirm('¿Dar de baja este parque?');">
+              <button class="small" type="submit">Baja</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 id="form-title">Nuevo parque</h2>
+    <form id="parque-form" method="POST" action="/parque/alta">
+      <input type="hidden" id="id_parque" name="id_parque" value="">
+
+      <label for="nombre">Nombre</label>
+      <input type="text" id="nombre" name="nombre" required maxlength="30">
+
+      <label for="ubicacion">Ubicación</label>
+      <input type="text" id="ubicacion" name="ubicacion" required maxlength="15">
+
+      <label for="superficie">Superficie (ha)</label>
+      <input type="number" id="superficie" name="superficie" step="0.01" required>
+
+      <label for="id_tipo_parque">Tipo de parque</label>
+      <select id="id_tipo_parque" name="id_tipo_parque" required>
+        {% for t in tipos %}
+        <option value="{{ t.id_tipo_parque }}">{{ t.descripcion }}</option>
+        {% endfor %}
+      </select>
+
+      <button class="primary" type="submit" id="submit-btn">Guardar parque</button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+function cargarEdicion(id, nombre, ubicacion, superficie) {
+  document.getElementById('form-title').innerText = 'Editar parque #' + id;
+  document.getElementById('id_parque').value = id;
+  document.getElementById('nombre').value = nombre;
+  document.getElementById('ubicacion').value = ubicacion;
+  document.getElementById('superficie').value = superficie;
+  document.getElementById('parque-form').action = '/parque/modificar';
+  document.getElementById('submit-btn').innerText = 'Guardar cambios';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
