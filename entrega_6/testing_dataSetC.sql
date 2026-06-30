@@ -14,3 +14,4 @@ EXEC Importacion.Importar_Alojamientos_JSON @Ruta_Archivo = 'C:\Temp\alojamiento
 
 -- Verificamos resultados
 SELECT TOP 10 * FROM GestionParques.Alojamiento_Turistico;
+SELECT *FROM GestionParques.Alojamiento_Turistico;

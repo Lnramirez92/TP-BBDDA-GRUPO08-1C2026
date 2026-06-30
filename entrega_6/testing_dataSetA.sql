@@ -13,3 +13,5 @@ GO
 EXEC Importacion.Importar_Parques @Ruta_Archivo = 'C:\Temp\parques_datos.csv';
 
 SELECT * FROM Importacion.Historial_Importaciones;
+
+SELECT* FROM GestionParques.Parque

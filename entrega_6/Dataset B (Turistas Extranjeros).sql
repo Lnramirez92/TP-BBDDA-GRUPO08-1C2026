@@ -47,12 +47,11 @@ BEGIN
         observaciones VARCHAR(MAX)
     );
 
-PRINT '2. Cargando datos fisicos (BULK INSERT)...';
-    SET @SQL = 'BULK INSERT Importacion.Staging_Turistas
+SET @SQL = 'BULK INSERT Importacion.Staging_Turistas
                 FROM ''' + @Ruta_Archivo + '''
                 WITH (
                     FIELDTERMINATOR = '','', 
-                    ROWTERMINATOR = ''0x0D0A'', 
+                    ROWTERMINATOR = ''0x0a'', 
                     CODEPAGE = ''65001'',
                     FIRSTROW = 2
                 );';
